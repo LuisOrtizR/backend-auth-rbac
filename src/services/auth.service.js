@@ -57,8 +57,8 @@ const registerUser = async ({ name, email, password }) => {
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  const user = await createUser(name, email, hashedPassword);
-  const userCreated = user.rows[0];
+  // createUser ya devuelve el usuario directamente
+  const userCreated = await createUser(name, email, hashedPassword);
 
   const roleResult = await pool.query(
     `SELECT id FROM roles WHERE name='user'`
@@ -79,6 +79,7 @@ const registerUser = async ({ name, email, password }) => {
     email: userCreated.email
   };
 };
+
 
 /* =====================================================
    LOGIN

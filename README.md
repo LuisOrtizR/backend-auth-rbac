@@ -192,3 +192,38 @@ Desarrollado como demostración de competencias en:
 - Seguridad en APIs
 - Arquitectura de software
 - Diseño escalable en Node.js
+
+## 📌 API Endpoints
+
+### Auth
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/refresh
+POST /api/auth/logout
+POST /api/auth/forgot
+POST /api/auth/reset
+
+### Users
+GET /api/users
+GET /api/users/:id
+PATCH /api/users/:id
+DELETE /api/users/:id
+
+### Roles
+GET /api/roles
+POST /api/roles
+PATCH /api/roles/:id
+DELETE /api/roles/:id
+
+## 🏗 Architecture Diagram
+
+```mermaid
+flowchart LR
+    Client --> Auth
+    Auth --> JWT
+    JWT --> Middleware
+    Middleware --> RBAC
+    RBAC --> Controller
+    Controller --> Service
+    Service --> DB
+

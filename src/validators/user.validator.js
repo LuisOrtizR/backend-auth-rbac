@@ -1,7 +1,7 @@
 const { z } = require('zod');
 
 const idParamSchema = z.object({
-  id: z.string().regex(/^\d+$/, 'ID inválido')
+  id: z.string().uuid('ID debe ser un UUID válido')
 });
 
 const updateUserSchema = z.object({

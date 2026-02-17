@@ -12,12 +12,10 @@ const {
 const getAll = async (req, res) => {
   try {
     const users = await getUsersService();
-
     res.json({
       total: users.length,
       data: users
     });
-
   } catch {
     res.status(500).json({ message: 'Error obteniendo usuarios' });
   }
@@ -28,16 +26,14 @@ const getAll = async (req, res) => {
 ===================================================== */
 const getOne = async (req, res) => {
   try {
-    const requestedId = parseInt(req.params.id);
+    const requestedId = req.params.id; // UUID como string
     const loggedUser = req.user;
 
     if (
       !loggedUser.roles.includes('admin') &&
       loggedUser.id !== requestedId
     ) {
-      return res.status(403).json({
-        message: 'No autorizado para ver este usuario'
-      });
+      return res.status(403).json({ message: 'No autorizado para ver este usuario' });
     }
 
     const user = await getUserService(requestedId);
@@ -47,7 +43,6 @@ const getOne = async (req, res) => {
     if (error.message === 'USER_NOT_FOUND') {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-
     res.status(500).json({ message: 'Error obteniendo usuario' });
   }
 };
@@ -69,16 +64,14 @@ const getMe = async (req, res) => {
 ===================================================== */
 const update = async (req, res) => {
   try {
-    const requestedId = parseInt(req.params.id);
+    const requestedId = req.params.id; // UUID
     const loggedUser = req.user;
 
     if (
       !loggedUser.roles.includes('admin') &&
       loggedUser.id !== requestedId
     ) {
-      return res.status(403).json({
-        message: 'No autorizado para actualizar este usuario'
-      });
+      return res.status(403).json({ message: 'No autorizado para actualizar este usuario' });
     }
 
     const updated = await updateUserService(requestedId, req.body);
@@ -88,7 +81,6 @@ const update = async (req, res) => {
     if (error.message === 'USER_NOT_FOUND') {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-
     res.status(500).json({ message: 'Error actualizando usuario' });
   }
 };
@@ -110,27 +102,23 @@ const updateMe = async (req, res) => {
 ===================================================== */
 const remove = async (req, res) => {
   try {
-    const requestedId = parseInt(req.params.id);
+    const requestedId = req.params.id; // UUID
     const loggedUser = req.user;
 
     if (
       !loggedUser.roles.includes('admin') &&
       loggedUser.id !== requestedId
     ) {
-      return res.status(403).json({
-        message: 'No autorizado para eliminar este usuario'
-      });
+      return res.status(403).json({ message: 'No autorizado para eliminar este usuario' });
     }
 
     await deleteUserService(requestedId);
-
     res.json({ message: 'Usuario eliminado correctamente' });
 
   } catch (error) {
     if (error.message === 'USER_NOT_FOUND') {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-
     res.status(500).json({ message: 'Error eliminando usuario' });
   }
 };
@@ -152,18 +140,12 @@ const removeMe = async (req, res) => {
 ===================================================== */
 const changeRole = async (req, res) => {
   try {
-    const updated = await changeUserRoleService(
-      req.params.id,
-      req.body.role
-    );
-
+    const updated = await changeUserRoleService(req.params.id, req.body.role);
     res.json(updated);
-
   } catch (error) {
     if (error.message === 'USER_NOT_FOUND') {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-
     res.status(500).json({ message: 'Error cambiando rol' });
   }
 };

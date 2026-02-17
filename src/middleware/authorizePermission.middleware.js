@@ -1,25 +1,25 @@
-const authorizePermission = (requiredPermission) => {
-  return (req, res, next) => {
+  const authorizePermission = (requiredPermission) => {
+    return (req, res, next) => {
 
-    if (!req.user) {
-      return res.status(401).json({ message: 'No autenticado' });
-    }
+      if (!req.user) {
+        return res.status(401).json({ message: 'No autenticado' });
+      }
 
-    const { roles = [], permissions = [] } = req.user;
+      const { roles = [], permissions = [] } = req.user;
 
-    // 🔥 Admin tiene todos los permisos
-    if (roles.includes('admin')) {
-      return next();
-    }
+      // 🔥 Admin tiene todos los permisos
+      if (roles.includes('admin')) {
+        return next();
+      }
 
-    if (!permissions.includes(requiredPermission)) {
-      return res.status(403).json({
-        message: `Permiso requerido: ${requiredPermission}`
-      });
-    }
+      if (!permissions.includes(requiredPermission)) {
+        return res.status(403).json({
+          message: `Permiso requerido: ${requiredPermission}`
+        });
+      }
 
-    next();
+      next();
+    };
   };
-};
 
-module.exports = authorizePermission;
+  module.exports = authorizePermission;

@@ -1,20 +1,14 @@
 const db = require('../config/db');
 
-/* =====================================================
-   CREAR
-===================================================== */
 const createPermission = (name, description) => {
   return db.query(
     `INSERT INTO permissions (id, name, description)
-     VALUES (uuid_generate_v4(), $1, $2)
+     VALUES (gen_random_uuid(), $1, $2)
      RETURNING *`,
     [name, description]
   );
 };
 
-/* =====================================================
-   BUSCAR POR NOMBRE
-===================================================== */
 const findByName = (name) => {
   return db.query(
     `SELECT * FROM permissions WHERE name = $1`,
@@ -22,48 +16,64 @@ const findByName = (name) => {
   );
 };
 
-/* =====================================================
-   LISTAR PAGINADO
-===================================================== */
-const getPermissionsPaginated = (limit, offset) => {
-  return db.query(
-    `SELECT * FROM permissions
-     ORDER BY created_at DESC
-     LIMIT $1 OFFSET $2`,
-    [limit, offset]
-  );
-};
-
-/* =====================================================
-   CONTAR
-===================================================== */
-const countPermissions = () => {
-  return db.query(`SELECT COUNT(*) FROM permissions`);
-};
-
-/* =====================================================
-   BUSCAR POR UUID
-===================================================== */
-const findFullById = (uuid) => {
+const findById = (uuid) => {
   return db.query(
     `SELECT * FROM permissions WHERE id = $1`,
     [uuid]
   );
 };
 
-/* =====================================================
-   VALIDAR SI ESTÁ ASIGNADO A UN ROL
-===================================================== */
+const updatePermission = (uuid, name, description) => {
+  return db.query(
+    `UPDATE permissions
+     SET name = COALESCE($2, name),
+         description = COALESCE($3, description)
+     WHERE id = $1
+     RETURNING *`,
+    [uuid, name, description]
+  );
+};
+
+const getPermissions = (limit, offset, search, sort, order) => {
+  const values = [];
+  let where = '';
+  let idx = 1;
+
+  if (search) {
+    where = `WHERE name ILIKE $${idx++}`;
+    values.push(`%${search}%`);
+  }
+
+  values.push(limit, offset);
+
+  return db.query(
+    `SELECT *
+     FROM permissions
+     ${where}
+     ORDER BY ${sort} ${order}
+     LIMIT $${idx++} OFFSET $${idx}`,
+    values
+  );
+};
+
+const countPermissions = (search) => {
+  if (!search) {
+    return db.query(`SELECT COUNT(*) FROM permissions`);
+  }
+
+  return db.query(
+    `SELECT COUNT(*) FROM permissions WHERE name ILIKE $1`,
+    [`%${search}%`]
+  );
+};
+
 const isAssignedToRole = (uuid) => {
   return db.query(
-    `SELECT * FROM role_permissions WHERE permission_id = $1`,
+    `SELECT 1 FROM role_permissions WHERE permission_id = $1`,
     [uuid]
   );
 };
 
-/* =====================================================
-   ELIMINAR
-===================================================== */
 const deletePermission = (uuid) => {
   return db.query(
     `DELETE FROM permissions WHERE id = $1`,
@@ -74,9 +84,10 @@ const deletePermission = (uuid) => {
 module.exports = {
   createPermission,
   findByName,
-  getPermissionsPaginated,
+  findById,
+  updatePermission,
+  getPermissions,
   countPermissions,
-  findFullById,
   isAssignedToRole,
   deletePermission
 };
