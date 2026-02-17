@@ -113,6 +113,23 @@ const addPermission = async (req, res) => {
   });
 };
 
+const removePermission = async (req, res, next) => {
+  try {
+    await removePermissionService(
+      req.params.id,
+      req.params.permissionId
+    );
+
+    res.json({
+      success: true,
+      message: 'Permiso removido correctamente'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 /* =====================================================
    OBTENER PERMISOS
 ===================================================== */
@@ -128,5 +145,6 @@ module.exports = {
   update,
   remove,
   addPermission,
-  permissions
+  permissions,
+  removePermission,
 };

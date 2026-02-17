@@ -6,6 +6,8 @@ const {
   changeUserRoleService
 } = require('../services/user.service');
 
+const { findUserWithRolesAndPermissionsById } = require('../models/user.model'); // 🔥 IMPORTAR
+
 /* =====================================================
    ADMIN - OBTENER TODOS
 ===================================================== */
@@ -26,7 +28,7 @@ const getAll = async (req, res) => {
 ===================================================== */
 const getOne = async (req, res) => {
   try {
-    const requestedId = req.params.id; // UUID como string
+    const requestedId = req.params.id;
     const loggedUser = req.user;
 
     if (
@@ -48,13 +50,23 @@ const getOne = async (req, res) => {
 };
 
 /* =====================================================
-   🔥 PERFIL PROPIO - GET /me
+   🔥 PERFIL PROPIO - GET /me (CON ROLES Y PERMISOS)
 ===================================================== */
 const getMe = async (req, res) => {
   try {
-    const user = await getUserService(req.user.id);
-    res.json(user);
-  } catch {
+    // 🔥 Usar la función que trae roles y permisos
+    const user = await findUserWithRolesAndPermissionsById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error en getMe:', error);
     res.status(500).json({ message: 'Error obteniendo perfil' });
   }
 };
@@ -64,7 +76,7 @@ const getMe = async (req, res) => {
 ===================================================== */
 const update = async (req, res) => {
   try {
-    const requestedId = req.params.id; // UUID
+    const requestedId = req.params.id;
     const loggedUser = req.user;
 
     if (
@@ -102,7 +114,7 @@ const updateMe = async (req, res) => {
 ===================================================== */
 const remove = async (req, res) => {
   try {
-    const requestedId = req.params.id; // UUID
+    const requestedId = req.params.id;
     const loggedUser = req.user;
 
     if (
@@ -153,10 +165,10 @@ const changeRole = async (req, res) => {
 module.exports = {
   getAll,
   getOne,
-  getMe,
+  getMe,    // 🔥 Exportar
   update,
-  updateMe,
+  updateMe, // 🔥 Exportar
   remove,
-  removeMe,
+  removeMe, // 🔥 Exportar
   changeRole
 };

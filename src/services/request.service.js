@@ -1,54 +1,56 @@
-const pool = require('../config/db');
 const {
   createRequest,
   getAllRequests,
   getRequestsByUser,
   getRequestById,
-  updateRequest,
+  updateRequestFull,
   deleteRequest
 } = require('../models/request.model');
+
+const pool = require('../config/db');
 
 /* =====================================================
    CREAR
 ===================================================== */
 const createNewRequest = async (data, userId) => {
-  return createRequest(data.title, data.description, userId);
+  return createRequest(
+    data.title,
+    data.description,
+    userId,
+    data.priority || 'medium'
+  );
 };
 
 /* =====================================================
-   OBTENER UNA
-===================================================== */
-const getRequestByIdService = async (id) => {
-  return getRequestById(id);
-};
-
-/* =====================================================
-   ACTUALIZAR
+   ACTUALIZAR PROFESIONAL
 ===================================================== */
 const updateExistingRequest = async (id, data, user) => {
 
-  // ADMIN puede modificar todo
-  if (user.roles.includes('admin')) {
-    return pool.query(
-      `UPDATE requests
-       SET title=$1,
-           description=$2,
-           status=COALESCE($3,status)
-       WHERE id=$4
-       RETURNING *`,
-      [data.title, data.description, data.status, id]
-    );
+  const request = await getRequestById(id);
+
+  if (request.rowCount === 0) {
+    return request;
   }
 
-  // Usuario normal solo puede modificar su propia solicitud
-  return pool.query(
-    `UPDATE requests
-     SET title=$1,
-         description=$2
-     WHERE id=$3 AND user_id=$4
-     RETURNING *`,
-    [data.title, data.description, id, user.id]
-  );
+  const current = request.rows[0];
+
+  // ADMIN puede modificar todo
+  if (user.roles.includes('admin')) {
+    return updateRequestFull(id, data);
+  }
+
+  // Usuario normal solo puede modificar si es dueño
+  if (current.user_id !== user.id) {
+    return { rowCount: 0 };
+  }
+
+  // Usuario normal NO puede cambiar status ni asignación
+  const safeData = {
+    title: data.title,
+    description: data.description
+  };
+
+  return updateRequestFull(id, safeData);
 };
 
 /* =====================================================
@@ -56,17 +58,19 @@ const updateExistingRequest = async (id, data, user) => {
 ===================================================== */
 const deleteRequestById = async (id, user) => {
 
-  // Admin elimina cualquiera
-  if (user.roles.includes('admin')) {
+  const request = await getRequestById(id);
+
+  if (request.rowCount === 0) {
+    return request;
+  }
+
+  const current = request.rows[0];
+
+  if (user.roles.includes('admin') || current.user_id === user.id) {
     return deleteRequest(id);
   }
 
-  // Usuario solo elimina la suya
-  return pool.query(
-    `DELETE FROM requests
-     WHERE id=$1 AND user_id=$2`,
-    [id, user.id]
-  );
+  return { rowCount: 0 };
 };
 
 module.exports = {
@@ -74,6 +78,6 @@ module.exports = {
   updateExistingRequest,
   getAllRequests,
   getRequestsByUser,
-  getRequestById: getRequestByIdService,
+  getRequestById,
   deleteRequestById
 };

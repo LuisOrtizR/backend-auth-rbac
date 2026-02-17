@@ -18,16 +18,13 @@ const {
 const create = async (req, res) => {
   try {
     const data = createRequestSchema.parse(req.body);
-
     const result = await createNewRequest(data, req.user.id);
-
     res.status(201).json(result.rows[0]);
-
   } catch (error) {
+    console.log('ERROR CREATE REQUEST:', error); // ← agrega esto
     if (error.name === 'ZodError') {
       return res.status(400).json({ errors: error.errors });
     }
-
     res.status(500).json({ message: 'Error creando solicitud' });
   }
 };

@@ -20,6 +20,21 @@ const authenticate = async (req, res, next) => {
       return next(new AppError('Usuario no válido', 401));
     }
 
+    // 🔍 LOGS TEMPORALES DE DEBUG - BORRAR DESPUÉS
+    console.log('\n========== DEBUG AUTENTICACIÓN ==========');
+    console.log('📧 Email:', user.email);
+    console.log('🎭 Roles:', user.roles);
+    console.log('   Tipo:', typeof user.roles);
+    console.log('   Es Array?:', Array.isArray(user.roles));
+    console.log('   Longitud:', user.roles?.length);
+    console.log('🔑 Permisos:', user.permissions);
+    console.log('   Tipo:', typeof user.permissions);
+    console.log('   Es Array?:', Array.isArray(user.permissions));
+    console.log('   Longitud:', user.permissions?.length);
+    console.log('✅ Tiene "requests_create"?:', user.permissions?.includes('requests_create'));
+    console.log('✅ Tiene "user" role?:', user.roles?.includes('user'));
+    console.log('=========================================\n');
+
     req.user = user;
 
     next();

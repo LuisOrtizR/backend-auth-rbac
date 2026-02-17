@@ -79,6 +79,18 @@ const assignPermission = (roleId, permissionId) => {
 };
 
 /* =====================================================
+   QUITAR PERMISO
+===================================================== */
+const removePermission = (roleId, permissionId) => {
+  return pool.query(
+    `DELETE FROM role_permissions
+     WHERE role_id = $1 AND permission_id = $2`,
+    [roleId, permissionId]
+  );
+};
+
+
+/* =====================================================
    OBTENER PERMISOS DEL ROL
 ===================================================== */
 const getRolePermissions = (roleId) => {
@@ -99,5 +111,6 @@ module.exports = {
   updateRole,
   deleteRole,
   assignPermission,
-  getRolePermissions
+  getRolePermissions,
+  removePermission,
 };

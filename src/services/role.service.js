@@ -72,6 +72,11 @@ const assignPermissionService = async (roleId, permissionId) => {
   return assignPermission(roleId, permissionId);
 };
 
+const removePermissionService = async (roleId, permissionId) => {
+  return removePermission(roleId, permissionId);
+};
+
+
 /* =====================================================
    OBTENER PERMISOS
 ===================================================== */
@@ -86,5 +91,6 @@ module.exports = {
   updateRoleService,
   deleteRoleService,
   assignPermissionService,
-  getRolePermissionsService
+  getRolePermissionsService,
+  removePermissionService,
 };
