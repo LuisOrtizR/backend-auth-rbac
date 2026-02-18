@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
-const controller = require('../controllers/user.controller');
-const authenticate = require('../middleware/authenticate.middleware');
-const authorizeRole = require('../middleware/authorizeRoles.middleware');
-const authorizePermission = require('../middleware/authorizePermission.middleware');
-const validate = require('../middleware/validate.middleware');
+const controller = require('../users/user.controller');
+const authenticate = require('../shared/middleware/authenticate.middleware');
+const authorizeRole = require('../shared/middleware/authorizeRoles.middleware');
+const authorizePermission = require('../shared/middleware/authorizePermission.middleware');
+const validate = require('../shared/middleware/validate.middleware');
 
 const {
   idParamSchema,
   updateUserSchema,
   changeRoleSchema
-} = require('../validators/user.validator');
+} = require('../users/user.validator');
 
 /* =====================================================
    🔥 RUTAS PROPIAS (/me) - DEBEN IR PRIMERO

@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const pool = require('../shared/config/db');
 
 /* =====================================================
    HELPER: Convertir array de PostgreSQL a JavaScript

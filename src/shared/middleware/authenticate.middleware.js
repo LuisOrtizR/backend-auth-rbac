@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
-const { findUserWithRolesAndPermissionsById } = require('../models/user.model');
+const { findUserWithRolesAndPermissionsById } = require('../../users/user.model');
 
 const authenticate = async (req, res, next) => {
   try {

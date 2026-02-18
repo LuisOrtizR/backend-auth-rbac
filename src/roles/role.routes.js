@@ -1,16 +1,16 @@
 // routes/role.routes.js
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/role.controller');
-const authenticate = require('../middleware/authenticate.middleware');
-const authorize = require('../middleware/authorizePermission.middleware');
-const validate = require('../middleware/validate.middleware');
+const controller = require('./role.controller');
+const authenticate = require('../shared/middleware/authenticate.middleware');
+const authorize = require('../shared/middleware/authorizePermission.middleware');
+const validate = require('../shared/middleware/validate.middleware');
 const { 
   idParamSchema, 
   createRoleSchema, 
   updateRoleSchema, 
   assignPermissionSchema 
-} = require('../validators/role.validator');
+} = require('../roles/role.validator');
 
 router.post('/', authenticate, authorize('create_roles',), validate(createRoleSchema), controller.create);
 router.get('/', authenticate, authorize('view_roles',), controller.getAll);

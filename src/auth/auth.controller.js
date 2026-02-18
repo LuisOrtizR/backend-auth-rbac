@@ -1,5 +1,5 @@
-const authService = require('../services/auth.service');
-const AppError = require('../utils/AppError');
+const authService = require('./auth.service');
+const AppError = require('../shared/utils/AppError');
 
 const {
   registerSchema,
@@ -7,7 +7,7 @@ const {
   refreshSchema,
   forgotSchema,
   resetSchema
-} = require('../validators/auth.validator');
+} = require('./auth.validator');
 
 /* =====================================================
    REGISTER

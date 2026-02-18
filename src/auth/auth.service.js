@@ -1,11 +1,11 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const pool = require('../config/db');
-const AppError = require('../utils/AppError');
+const pool = require('../shared/config/db');
+const AppError = require('../shared/utils/AppError');
 
-const { createUser, findUserWithRolesByEmail } = require('../models/user.model');
-const { sendPasswordResetEmail } = require('./email.service');
+const { createUser, findUserWithRolesByEmail } = require('../users/user.model');
+const emailService = require('../shared/services/email.service');
 
 /* =====================================================
    TOKENS

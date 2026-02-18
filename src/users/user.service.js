@@ -4,7 +4,7 @@ const {
   updateUser,
   deleteUser,
   updateUserRole
-} = require('../models/user.model');
+} = require('./user.model');
 
 const getUsersService = async () => {
   return await getAllUsers();

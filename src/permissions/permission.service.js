@@ -1,5 +1,5 @@
-const permissionModel = require('../models/permission.model');
-const AppError = require('../utils/AppError');
+const permissionModel = require('./permission.model');
+const AppError = require('../shared/utils/AppError');
 
 const protectedPermissions = [
   'users_read',

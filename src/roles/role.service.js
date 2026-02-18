@@ -7,7 +7,7 @@ const {
   deleteRole,
   assignPermission,
   getRolePermissions
-} = require('../models/role.model');
+} = require('./role.model');
 
 /* =====================================================
    CREAR

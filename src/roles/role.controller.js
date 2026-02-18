@@ -6,7 +6,7 @@ const {
   deleteRoleService,
   assignPermissionService,
   getRolePermissionsService
-} = require('../services/role.service');
+} = require('../roles/role.service');
 
 /* =====================================================
    CREAR

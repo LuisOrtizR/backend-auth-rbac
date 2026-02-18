@@ -4,9 +4,9 @@ const {
   updateUserService,
   deleteUserService,
   changeUserRoleService
-} = require('../services/user.service');
+} = require('../users/user.service');
 
-const { findUserWithRolesAndPermissionsById } = require('../models/user.model'); // 🔥 IMPORTAR
+const { findUserWithRolesAndPermissionsById } = require('../users/user.model'); // 🔥 IMPORTAR
 
 /* =====================================================
    ADMIN - OBTENER TODOS

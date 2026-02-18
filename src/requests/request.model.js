@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const pool = require('../shared/config/db');
 
 /* =====================================================
    CREAR - status 'open' por defecto

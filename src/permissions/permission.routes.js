@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const controller = require('../controllers/permission.controller');
-const authenticate = require('../middleware/authenticate.middleware');
-const authorize = require('../middleware/authorizePermission.middleware');
-const validate = require('../middleware/validate.middleware');
+const controller = require('../permissions/permission.controller');
+const authenticate = require('../shared/middleware/authenticate.middleware');
+const authorize = require('../shared/middleware/authorizePermission.middleware');
+const validate = require('../shared/middleware/validate.middleware');
 const {
   createPermissionSchema,
   updatePermissionSchema,
   uuidParamSchema
-} = require('../validators/permission.validator');
+} = require('./permission.validator');
 
 router.post('/', authenticate, authorize('permissions_create'), validate(createPermissionSchema), controller.create);
 router.get('/', authenticate, authorize('permissions_read'), controller.getAll);

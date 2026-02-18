@@ -1,7 +1,7 @@
 const {
   createRequestSchema,
   updateRequestSchema
-} = require('../validators/request.validator');
+} = require('./request.validator');
 
 const {
   createNewRequest,
@@ -10,7 +10,7 @@ const {
   getRequestsByUser,
   getRequestById,
   deleteRequestById
-} = require('../services/request.service');
+} = require('./request.service');
 
 /* =====================================================
    CREAR

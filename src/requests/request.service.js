@@ -5,9 +5,9 @@ const {
   getRequestById,
   updateRequestFull,
   deleteRequest
-} = require('../models/request.model');
+} = require('../requests/request.model');
 
-const pool = require('../config/db');
+const pool = require('../shared/config/db');
 
 /* =====================================================
    CREAR
