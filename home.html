@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Backend Auth RBAC API</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 60%);
+      border-bottom: 1px solid #1e293b;
+      padding: 60px 24px 48px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0ea5e915;
+      border: 1px solid #0ea5e930;
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      background: linear-gradient(135deg, #f8fafc, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .hero p {
+      color: #64748b;
+      font-size: 16px;
+      max-width: 560px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0f2e1a;
+      border: 1px solid #166534;
+      color: #4ade80;
+      font-size: 13px;
+      padding: 8px 18px;
+      border-radius: 999px;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* LAYOUT */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    /* TECH STACK */
+    .tech-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 56px;
+    }
+    .tech-badge {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 16px;
+      border-radius: 8px;
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 16px;
+    }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 56px;
+    }
+    .feature-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    .feature-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    /* ENDPOINTS */
+    .endpoints-section { margin-bottom: 56px; }
+    .endpoint-group { margin-bottom: 24px; }
+    .endpoint-group-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 10px;
+      padding-left: 4px;
+    }
+    .endpoint-list { display: flex; flex-direction: column; gap: 6px; }
+    .endpoint-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    .method {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      min-width: 52px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .method.get    { background: #064e3b; color: #34d399; }
+    .method.post   { background: #1e3a5f; color: #60a5fa; }
+    .method.put    { background: #3b2700; color: #fbbf24; }
+    .method.patch  { background: #2e1065; color: #a78bfa; }
+    .method.delete { background: #3b0f0f; color: #f87171; }
+    .endpoint-path { color: #cbd5e1; font-family: 'Courier New', monospace; }
+    .endpoint-desc { color: #475569; font-size: 12px; margin-left: auto; }
+
+    /* ARCHITECTURE */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 56px;
+    }
+    .arch-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .arch-card .icon { font-size: 22px; margin-bottom: 8px; }
+    .arch-card .layer { font-size: 12px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+    .arch-card .desc  { font-size: 11px; color: #475569; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid #1e293b;
+      padding: 32px 24px;
+      text-align: center;
+      color: #334155;
+      font-size: 13px;
+    }
+    footer span { color: #475569; }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🔐 REST API</div>
+    <h1>Backend Auth RBAC API</h1>
+    <p>API profesional con autenticación JWT y control de acceso basado en roles y permisos (RBAC), lista para entornos productivos.</p>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      API en línea y operativa
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- TECH STACK -->
+    <p class="section-title">Stack tecnológico</p>
+    <div class="tech-grid">
+      <span class="tech-badge">Node.js</span>
+      <span class="tech-badge">Express</span>
+      <span class="tech-badge">PostgreSQL</span>
+      <span class="tech-badge">JWT</span>
+      <span class="tech-badge">Zod</span>
+      <span class="tech-badge">RBAC</span>
+      <span class="tech-badge">Nodemailer</span>
+    </div>
+
+    <!-- FEATURES -->
+    <p class="section-title">Características principales</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔑</div>
+        <h3>Autenticación JWT</h3>
+        <p>Access y Refresh Tokens con rotación segura, firmados con secretos protegidos en variables de entorno.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Sistema RBAC</h3>
+        <p>Usuarios con múltiples roles, roles con permisos granulares y middleware de autorización reutilizable.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📧</div>
+        <h3>Gestión de cuenta</h3>
+        <p>Registro, login, logout, recuperación y reset de contraseña con envío de emails.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✅</div>
+        <h3>Validación con Zod</h3>
+        <p>Schemas tipados y seguros en cada endpoint antes de llegar a la lógica de negocio.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Manejo de errores</h3>
+        <p>Middleware centralizado con clase AppError para respuestas consistentes en toda la API.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗂️</div>
+        <h3>Arquitectura modular</h3>
+        <p>Separación clara por capas: controllers, services, models, middleware y validators.</p>
+      </div>
+    </div>
+
+    <!-- ENDPOINTS -->
+    <p class="section-title">Endpoints disponibles</p>
+    <div class="endpoints-section">
+
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Auth</div>
+        <div class="endpoint-list">
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/auth/register</span><span class="endpoint-desc">Registro de usuario</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/auth/login</span><span class="endpoint-desc">Inicio de sesión</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/auth/refresh</span><span class="endpoint-desc">Renovar token</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/auth/logout</span><span class="endpoint-desc">Cerrar sesión</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/auth/forgot</span><span class="endpoint-desc">Recuperar contraseña</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/auth/reset</span><span class="endpoint-desc">Resetear contraseña</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Users</div>
+        <div class="endpoint-list">
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/users/me</span><span class="endpoint-desc">Mi perfil</span></div>
+          <div class="endpoint-item"><span class="method put">PUT</span><span class="endpoint-path">/api/users/me</span><span class="endpoint-desc">Actualizar mi perfil</span></div>
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/users</span><span class="endpoint-desc">Listar usuarios</span></div>
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/users/:id</span><span class="endpoint-desc">Obtener usuario</span></div>
+          <div class="endpoint-item"><span class="method put">PUT</span><span class="endpoint-path">/api/users/:id</span><span class="endpoint-desc">Actualizar usuario</span></div>
+          <div class="endpoint-item"><span class="method delete">DELETE</span><span class="endpoint-path">/api/users/:id</span><span class="endpoint-desc">Eliminar usuario</span></div>
+          <div class="endpoint-item"><span class="method patch">PATCH</span><span class="endpoint-path">/api/users/:id/role</span><span class="endpoint-desc">Cambiar rol</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Roles</div>
+        <div class="endpoint-list">
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/roles</span><span class="endpoint-desc">Listar roles</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/roles</span><span class="endpoint-desc">Crear rol</span></div>
+          <div class="endpoint-item"><span class="method put">PUT</span><span class="endpoint-path">/api/roles/:id</span><span class="endpoint-desc">Actualizar rol</span></div>
+          <div class="endpoint-item"><span class="method delete">DELETE</span><span class="endpoint-path">/api/roles/:id</span><span class="endpoint-desc">Eliminar rol</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/roles/:id/permissions</span><span class="endpoint-desc">Asignar permiso</span></div>
+          <div class="endpoint-item"><span class="method delete">DELETE</span><span class="endpoint-path">/api/roles/:id/permissions/:permissionId</span><span class="endpoint-desc">Quitar permiso</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Permissions</div>
+        <div class="endpoint-list">
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/permissions</span><span class="endpoint-desc">Listar permisos</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/permissions</span><span class="endpoint-desc">Crear permiso</span></div>
+          <div class="endpoint-item"><span class="method put">PUT</span><span class="endpoint-path">/api/permissions/:uuid</span><span class="endpoint-desc">Actualizar permiso</span></div>
+          <div class="endpoint-item"><span class="method delete">DELETE</span><span class="endpoint-path">/api/permissions/:uuid</span><span class="endpoint-desc">Eliminar permiso</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint-group">
+        <div class="endpoint-group-title">Requests</div>
+        <div class="endpoint-list">
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/requests</span><span class="endpoint-desc">Todas las solicitudes</span></div>
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/requests/mine</span><span class="endpoint-desc">Mis solicitudes</span></div>
+          <div class="endpoint-item"><span class="method post">POST</span><span class="endpoint-path">/api/requests</span><span class="endpoint-desc">Crear solicitud</span></div>
+          <div class="endpoint-item"><span class="method put">PUT</span><span class="endpoint-path">/api/requests/:id</span><span class="endpoint-desc">Actualizar solicitud</span></div>
+          <div class="endpoint-item"><span class="method delete">DELETE</span><span class="endpoint-path">/api/requests/:id</span><span class="endpoint-desc">Eliminar solicitud</span></div>
+          <div class="endpoint-item"><span class="method get">GET</span><span class="endpoint-path">/api/requests/:id/history</span><span class="endpoint-desc">Historial de solicitud</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ARQUITECTURA -->
+    <p class="section-title">Arquitectura por capas</p>
+    <div class="arch-grid">
+      <div class="arch-card"><div class="icon">🌐</div><div class="layer">Controllers</div><div class="desc">Entrada HTTP</div></div>
+      <div class="arch-card"><div class="icon">⚙️</div><div class="layer">Services</div><div class="desc">Lógica de negocio</div></div>
+      <div class="arch-card"><div class="icon">🗄️</div><div class="layer">Models</div><div class="desc">Acceso a datos</div></div>
+      <div class="arch-card"><div class="icon">🔒</div><div class="layer">Middleware</div><div class="desc">Auth & autorización</div></div>
+      <div class="arch-card"><div class="icon">✅</div><div class="layer">Validators</div><div class="desc">Validación Zod</div></div>
+      <div class="arch-card"><div class="icon">🛠️</div><div class="layer">Utils</div><div class="desc">Helpers & errores</div></div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>Backend Auth RBAC API</span> · Node.js + Express + PostgreSQL · JWT + RBAC
+  </footer>
+
+</body>
+</html>
