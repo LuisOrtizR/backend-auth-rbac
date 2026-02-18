@@ -6,9 +6,7 @@ const {
   updateUserRole
 } = require('./user.model');
 
-const getUsersService = async () => {
-  return await getAllUsers();
-};
+const getUsersService = () => getAllUsers();
 
 const getUserService = async (id) => {
   const user = await getUserById(id);
@@ -31,8 +29,7 @@ const deleteUserService = async (id) => {
 const changeUserRoleService = async (id, role) => {
   const user = await getUserById(id);
   if (!user) throw new Error('USER_NOT_FOUND');
-
-  return await updateUserRole(id, role);
+  return updateUserRole(id, role);
 };
 
 module.exports = {

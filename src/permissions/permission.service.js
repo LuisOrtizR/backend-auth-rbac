@@ -7,17 +7,13 @@ const protectedPermissions = [
   'permissions_read'
 ];
 
-const createPermissionService = async (data) => {
-  const existing = await permissionModel.findByName(data.name);
+const createPermissionService = async ({ name, description }) => {
+  const existing = await permissionModel.findByName(name);
 
-  if (existing.rowCount > 0) {
+  if (existing.rowCount)
     throw new AppError('El permiso ya existe', 409);
-  }
 
-  return permissionModel.createPermission(
-    data.name,
-    data.description || null
-  );
+  return permissionModel.createPermission(name, description || null);
 };
 
 const getPermissionsService = async ({
@@ -38,7 +34,7 @@ const getPermissionsService = async ({
   );
 
   const totalResult = await permissionModel.countPermissions(search);
-  const total = parseInt(totalResult.rows[0].count);
+  const total = Number(totalResult.rows[0].count);
 
   return {
     total,
@@ -52,9 +48,8 @@ const getPermissionsService = async ({
 const getPermissionByUuidService = async (uuid) => {
   const result = await permissionModel.findById(uuid);
 
-  if (result.rowCount === 0) {
+  if (!result.rowCount)
     throw new AppError('Permiso no encontrado', 404);
-  }
 
   return result;
 };
@@ -62,19 +57,18 @@ const getPermissionByUuidService = async (uuid) => {
 const updatePermissionService = async (uuid, data) => {
   const existing = await permissionModel.findById(uuid);
 
-  if (existing.rowCount === 0) {
+  if (!existing.rowCount)
     throw new AppError('Permiso no encontrado', 404);
-  }
 
-  if (protectedPermissions.includes(existing.rows[0].name)) {
+  const currentName = existing.rows[0].name;
+
+  if (protectedPermissions.includes(currentName))
     throw new AppError('Permiso protegido', 403);
-  }
 
   if (data.name) {
     const nameExists = await permissionModel.findByName(data.name);
-    if (nameExists.rowCount > 0) {
+    if (nameExists.rowCount)
       throw new AppError('Nombre de permiso ya existe', 409);
-    }
   }
 
   return permissionModel.updatePermission(
@@ -87,19 +81,18 @@ const updatePermissionService = async (uuid, data) => {
 const deletePermissionService = async (uuid) => {
   const existing = await permissionModel.findById(uuid);
 
-  if (existing.rowCount === 0) {
+  if (!existing.rowCount)
     throw new AppError('Permiso no encontrado', 404);
-  }
 
-  if (protectedPermissions.includes(existing.rows[0].name)) {
+  const name = existing.rows[0].name;
+
+  if (protectedPermissions.includes(name))
     throw new AppError('Permiso protegido', 403);
-  }
 
   const assigned = await permissionModel.isAssignedToRole(uuid);
 
-  if (assigned.rowCount > 0) {
+  if (assigned.rowCount)
     throw new AppError('Permiso asignado a un rol', 409);
-  }
 
   return permissionModel.deletePermission(uuid);
 };

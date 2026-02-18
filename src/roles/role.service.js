@@ -6,83 +6,49 @@ const {
   updateRole,
   deleteRole,
   assignPermission,
+  removePermission,
   getRolePermissions
 } = require('./role.model');
 
-/* =====================================================
-   CREAR
-===================================================== */
-const createRoleService = async (data) => {
+const createRoleService = async ({ name, description }) => {
+  const exists = await getRoleByName(name);
 
-  const exists = await getRoleByName(data.name);
-
-  if (exists.rowCount > 0) {
+  if (exists.rowCount)
     throw new Error('ROLE_ALREADY_EXISTS');
-  }
 
-  return createRole(data.name, data.description);
+  return createRole(name, description);
 };
 
-/* =====================================================
-   OBTENER TODOS
-===================================================== */
-const getRolesService = async () => {
-  return getRoles();
-};
+const getRolesService = () => getRoles();
 
-/* =====================================================
-   OBTENER UNO
-===================================================== */
-const getRoleService = async (id) => {
-  return getRoleById(id);
-};
+const getRoleService = (id) => getRoleById(id);
 
-/* =====================================================
-   ACTUALIZAR
-===================================================== */
-const updateRoleService = async (id, data) => {
-
+const updateRoleService = async (id, { name, description }) => {
   const existing = await getRoleById(id);
 
-  if (existing.rowCount === 0) {
+  if (!existing.rowCount)
     throw new Error('ROLE_NOT_FOUND');
-  }
 
-  return updateRole(id, data.name, data.description);
+  return updateRole(id, name, description);
 };
 
-/* =====================================================
-   ELIMINAR
-===================================================== */
 const deleteRoleService = async (id) => {
-
   const existing = await getRoleById(id);
 
-  if (existing.rowCount === 0) {
+  if (!existing.rowCount)
     throw new Error('ROLE_NOT_FOUND');
-  }
 
   return deleteRole(id);
 };
 
-/* =====================================================
-   ASIGNAR PERMISO
-===================================================== */
-const assignPermissionService = async (roleId, permissionId) => {
-  return assignPermission(roleId, permissionId);
-};
+const assignPermissionService = (roleId, permissionId) =>
+  assignPermission(roleId, permissionId);
 
-const removePermissionService = async (roleId, permissionId) => {
-  return removePermission(roleId, permissionId);
-};
+const removePermissionService = (roleId, permissionId) =>
+  removePermission(roleId, permissionId);
 
-
-/* =====================================================
-   OBTENER PERMISOS
-===================================================== */
-const getRolePermissionsService = async (roleId) => {
-  return getRolePermissions(roleId);
-};
+const getRolePermissionsService = (roleId) =>
+  getRolePermissions(roleId);
 
 module.exports = {
   createRoleService,
@@ -91,6 +57,6 @@ module.exports = {
   updateRoleService,
   deleteRoleService,
   assignPermissionService,
-  getRolePermissionsService,
   removePermissionService,
+  getRolePermissionsService
 };

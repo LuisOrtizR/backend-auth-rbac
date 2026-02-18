@@ -1,174 +1,90 @@
+const AppError = require('../shared/utils/AppError');
 const {
   getUsersService,
   getUserService,
   updateUserService,
   deleteUserService,
   changeUserRoleService
-} = require('../users/user.service');
+} = require('./user.service');
 
-const { findUserWithRolesAndPermissionsById } = require('../users/user.model'); // 🔥 IMPORTAR
+const { findUserWithRolesAndPermissionsById } = require('./user.model');
 
-/* =====================================================
-   ADMIN - OBTENER TODOS
-===================================================== */
-const getAll = async (req, res) => {
-  try {
-    const users = await getUsersService();
-    res.json({
-      total: users.length,
-      data: users
-    });
-  } catch {
-    res.status(500).json({ message: 'Error obteniendo usuarios' });
-  }
-};
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
 
-/* =====================================================
-   ADMIN / SELF - OBTENER UNO POR ID
-===================================================== */
-const getOne = async (req, res) => {
-  try {
-    const requestedId = req.params.id;
-    const loggedUser = req.user;
+const isAdminOrSelf = (user, id) =>
+  user.roles.includes('admin') || user.id === id;
 
-    if (
-      !loggedUser.roles.includes('admin') &&
-      loggedUser.id !== requestedId
-    ) {
-      return res.status(403).json({ message: 'No autorizado para ver este usuario' });
-    }
+const getAll = asyncHandler(async (req, res) => {
+  const users = await getUsersService();
+  res.json({ total: users.length, data: users });
+});
 
-    const user = await getUserService(requestedId);
-    res.json(user);
+const getOne = asyncHandler(async (req, res) => {
+  const requestedId = req.params.id;
 
-  } catch (error) {
-    if (error.message === 'USER_NOT_FOUND') {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-    res.status(500).json({ message: 'Error obteniendo usuario' });
-  }
-};
+  if (!isAdminOrSelf(req.user, requestedId))
+    throw new AppError('No autorizado', 403);
 
-/* =====================================================
-   🔥 PERFIL PROPIO - GET /me (CON ROLES Y PERMISOS)
-===================================================== */
-const getMe = async (req, res) => {
-  try {
-    // 🔥 Usar la función que trae roles y permisos
-    const user = await findUserWithRolesAndPermissionsById(req.user.id);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+  const user = await getUserService(requestedId);
+  res.json(user);
+});
 
-    res.json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    console.error('Error en getMe:', error);
-    res.status(500).json({ message: 'Error obteniendo perfil' });
-  }
-};
+const getMe = asyncHandler(async (req, res) => {
+  const user = await findUserWithRolesAndPermissionsById(req.user.id);
 
-/* =====================================================
-   ADMIN / SELF - ACTUALIZAR POR ID
-===================================================== */
-const update = async (req, res) => {
-  try {
-    const requestedId = req.params.id;
-    const loggedUser = req.user;
+  if (!user)
+    throw new AppError('Usuario no encontrado', 404);
 
-    if (
-      !loggedUser.roles.includes('admin') &&
-      loggedUser.id !== requestedId
-    ) {
-      return res.status(403).json({ message: 'No autorizado para actualizar este usuario' });
-    }
+  res.json({ success: true, data: user });
+});
 
-    const updated = await updateUserService(requestedId, req.body);
-    res.json(updated);
+const update = asyncHandler(async (req, res) => {
+  const requestedId = req.params.id;
 
-  } catch (error) {
-    if (error.message === 'USER_NOT_FOUND') {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-    res.status(500).json({ message: 'Error actualizando usuario' });
-  }
-};
+  if (!isAdminOrSelf(req.user, requestedId))
+    throw new AppError('No autorizado', 403);
 
-/* =====================================================
-   🔥 PERFIL PROPIO - PUT /me
-===================================================== */
-const updateMe = async (req, res) => {
-  try {
-    const updated = await updateUserService(req.user.id, req.body);
-    res.json(updated);
-  } catch {
-    res.status(500).json({ message: 'Error actualizando perfil' });
-  }
-};
+  const updated = await updateUserService(requestedId, req.body);
+  res.json(updated);
+});
 
-/* =====================================================
-   ADMIN / SELF - ELIMINAR POR ID
-===================================================== */
-const remove = async (req, res) => {
-  try {
-    const requestedId = req.params.id;
-    const loggedUser = req.user;
+const updateMe = asyncHandler(async (req, res) => {
+  const updated = await updateUserService(req.user.id, req.body);
+  res.json(updated);
+});
 
-    if (
-      !loggedUser.roles.includes('admin') &&
-      loggedUser.id !== requestedId
-    ) {
-      return res.status(403).json({ message: 'No autorizado para eliminar este usuario' });
-    }
+const remove = asyncHandler(async (req, res) => {
+  const requestedId = req.params.id;
 
-    await deleteUserService(requestedId);
-    res.json({ message: 'Usuario eliminado correctamente' });
+  if (!isAdminOrSelf(req.user, requestedId))
+    throw new AppError('No autorizado', 403);
 
-  } catch (error) {
-    if (error.message === 'USER_NOT_FOUND') {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-    res.status(500).json({ message: 'Error eliminando usuario' });
-  }
-};
+  await deleteUserService(requestedId);
+  res.json({ message: 'Usuario eliminado correctamente' });
+});
 
-/* =====================================================
-   🔥 PERFIL PROPIO - DELETE /me
-===================================================== */
-const removeMe = async (req, res) => {
-  try {
-    await deleteUserService(req.user.id);
-    res.json({ message: 'Cuenta eliminada correctamente' });
-  } catch {
-    res.status(500).json({ message: 'Error eliminando cuenta' });
-  }
-};
+const removeMe = asyncHandler(async (req, res) => {
+  await deleteUserService(req.user.id);
+  res.json({ message: 'Cuenta eliminada correctamente' });
+});
 
-/* =====================================================
-   ADMIN - CAMBIAR ROL
-===================================================== */
-const changeRole = async (req, res) => {
-  try {
-    const updated = await changeUserRoleService(req.params.id, req.body.role);
-    res.json(updated);
-  } catch (error) {
-    if (error.message === 'USER_NOT_FOUND') {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-    res.status(500).json({ message: 'Error cambiando rol' });
-  }
-};
+const changeRole = asyncHandler(async (req, res) => {
+  const updated = await changeUserRoleService(
+    req.params.id,
+    req.body.role
+  );
+
+  res.json(updated);
+});
 
 module.exports = {
   getAll,
   getOne,
-  getMe,    // 🔥 Exportar
+  getMe,
   update,
-  updateMe, // 🔥 Exportar
+  updateMe,
   remove,
-  removeMe, // 🔥 Exportar
+  removeMe,
   changeRole
 };

@@ -1,30 +1,24 @@
 const db = require('../shared/config/db');
 
-const createPermission = (name, description) => {
-  return db.query(
+const allowedSortFields = ['name', 'created_at'];
+const allowedOrder = ['ASC', 'DESC'];
+
+const createPermission = (name, description) =>
+  db.query(
     `INSERT INTO permissions (id, name, description)
      VALUES (gen_random_uuid(), $1, $2)
      RETURNING *`,
     [name, description]
   );
-};
 
-const findByName = (name) => {
-  return db.query(
-    `SELECT * FROM permissions WHERE name = $1`,
-    [name]
-  );
-};
+const findByName = (name) =>
+  db.query(`SELECT * FROM permissions WHERE name = $1`, [name]);
 
-const findById = (uuid) => {
-  return db.query(
-    `SELECT * FROM permissions WHERE id = $1`,
-    [uuid]
-  );
-};
+const findById = (uuid) =>
+  db.query(`SELECT * FROM permissions WHERE id = $1`, [uuid]);
 
-const updatePermission = (uuid, name, description) => {
-  return db.query(
+const updatePermission = (uuid, name, description) =>
+  db.query(
     `UPDATE permissions
      SET name = COALESCE($2, name),
          description = COALESCE($3, description)
@@ -32,7 +26,6 @@ const updatePermission = (uuid, name, description) => {
      RETURNING *`,
     [uuid, name, description]
   );
-};
 
 const getPermissions = (limit, offset, search, sort, order) => {
   const values = [];
@@ -44,42 +37,39 @@ const getPermissions = (limit, offset, search, sort, order) => {
     values.push(`%${search}%`);
   }
 
+  const safeSort = allowedSortFields.includes(sort) ? sort : 'created_at';
+  const safeOrder = allowedOrder.includes(order?.toUpperCase())
+    ? order.toUpperCase()
+    : 'DESC';
+
   values.push(limit, offset);
 
   return db.query(
     `SELECT *
      FROM permissions
      ${where}
-     ORDER BY ${sort} ${order}
+     ORDER BY ${safeSort} ${safeOrder}
      LIMIT $${idx++} OFFSET $${idx}`,
     values
   );
 };
 
-const countPermissions = (search) => {
-  if (!search) {
-    return db.query(`SELECT COUNT(*) FROM permissions`);
-  }
+const countPermissions = (search) =>
+  search
+    ? db.query(
+        `SELECT COUNT(*) FROM permissions WHERE name ILIKE $1`,
+        [`%${search}%`]
+      )
+    : db.query(`SELECT COUNT(*) FROM permissions`);
 
-  return db.query(
-    `SELECT COUNT(*) FROM permissions WHERE name ILIKE $1`,
-    [`%${search}%`]
-  );
-};
-
-const isAssignedToRole = (uuid) => {
-  return db.query(
+const isAssignedToRole = (uuid) =>
+  db.query(
     `SELECT 1 FROM role_permissions WHERE permission_id = $1`,
     [uuid]
   );
-};
 
-const deletePermission = (uuid) => {
-  return db.query(
-    `DELETE FROM permissions WHERE id = $1`,
-    [uuid]
-  );
-};
+const deletePermission = (uuid) =>
+  db.query(`DELETE FROM permissions WHERE id = $1`, [uuid]);
 
 module.exports = {
   createPermission,

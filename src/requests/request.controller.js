@@ -1,107 +1,69 @@
 const {
-  createRequestSchema,
-  updateRequestSchema
-} = require('./request.validator');
-
-const {
   createNewRequest,
   updateExistingRequest,
   getAllRequests,
   getRequestsByUser,
   getRequestById,
-  deleteRequestById
+  deleteRequestById,
+  getHistoryByRequest
 } = require('./request.service');
 
-/* =====================================================
-   CREAR
-===================================================== */
-const create = async (req, res) => {
-  try {
-    const data = createRequestSchema.parse(req.body);
-    const result = await createNewRequest(data, req.user.id);
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.log('ERROR CREATE REQUEST:', error); // ← agrega esto
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ errors: error.errors });
-    }
-    res.status(500).json({ message: 'Error creando solicitud' });
-  }
-};
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
 
-/* =====================================================
-   LISTAR TODAS (ADMIN)
-===================================================== */
-const getAll = async (req, res) => {
+const create = asyncHandler(async (req, res) => {
+  const result = await createNewRequest(req.body, req.user.id);
+  res.status(201).json(result.rows[0]);
+});
+
+const getAll = asyncHandler(async (req, res) => {
   const result = await getAllRequests();
   res.json(result.rows);
-};
+});
 
-/* =====================================================
-   LISTAR MIS SOLICITUDES
-===================================================== */
-const getMine = async (req, res) => {
+const getMine = asyncHandler(async (req, res) => {
   const result = await getRequestsByUser(req.user.id);
   res.json(result.rows);
-};
+});
 
-/* =====================================================
-   OBTENER UNA
-===================================================== */
-const getOne = async (req, res) => {
-  try {
-    const result = await getRequestById(req.params.id);
+const getOne = asyncHandler(async (req, res) => {
+  const result = await getRequestById(req.params.id);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Solicitud no encontrada' });
-    }
+  if (!result.rowCount)
+    return res.status(404).json({ message: 'Solicitud no encontrada' });
 
-    res.json(result.rows[0]);
+  res.json(result.rows[0]);
+});
 
-  } catch {
-    res.status(500).json({ message: 'Error obteniendo solicitud' });
-  }
-};
+const update = asyncHandler(async (req, res) => {
+  const result = await updateExistingRequest(
+    req.params.id,
+    req.body,
+    req.user
+  );
 
-/* =====================================================
-   ACTUALIZAR
-===================================================== */
-const update = async (req, res) => {
-  try {
-    const data = updateRequestSchema.parse(req.body);
+  if (!result.rowCount)
+    return res.status(404).json({
+      message: 'Solicitud no encontrada o sin permiso'
+    });
 
-    const result = await updateExistingRequest(
-      req.params.id,
-      data,
-      req.user
-    );
+  res.json(result.rows[0]);
+});
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Solicitud no encontrada o sin permiso' });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (error) {
-    if (error.name === 'ZodError') {
-      return res.status(400).json({ errors: error.errors });
-    }
-
-    res.status(500).json({ message: 'Error actualizando solicitud' });
-  }
-};
-
-/* =====================================================
-   ELIMINAR
-===================================================== */
-const remove = async (req, res) => {
+const remove = asyncHandler(async (req, res) => {
   const result = await deleteRequestById(req.params.id, req.user);
 
-  if (result.rowCount === 0) {
-    return res.status(404).json({ message: 'Solicitud no encontrada o sin permiso' });
-  }
+  if (!result.rowCount)
+    return res.status(404).json({
+      message: 'Solicitud no encontrada o sin permiso'
+    });
 
   res.json({ message: 'Solicitud eliminada correctamente' });
-};
+});
 
-module.exports = { create, getAll, getMine, getOne, update, remove };
+const getHistory = asyncHandler(async (req, res) => {
+  const result = await getHistoryByRequest(req.params.id);
+  res.json(result.rows);
+});
+
+module.exports = { create, getAll, getMine, getOne, update, remove, getHistory };

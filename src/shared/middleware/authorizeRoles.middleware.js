@@ -1,11 +1,10 @@
+const AppError = require('../utils/AppError');
+
 const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
 
-    if (!req.user) {
-      return res.status(401).json({
-        message: 'No autenticado'
-      });
-    }
+    if (!req.user)
+      return next(new AppError('No autenticado', 401));
 
     const userRoles = req.user.roles || [];
 
@@ -13,11 +12,8 @@ const authorizeRoles = (...allowedRoles) => {
       allowedRoles.includes(role)
     );
 
-    if (!hasRole) {
-      return res.status(403).json({
-        message: 'Rol no autorizado'
-      });
-    }
+    if (!hasRole)
+      return next(new AppError('Rol no autorizado', 403));
 
     next();
   };

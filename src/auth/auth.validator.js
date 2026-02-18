@@ -3,7 +3,7 @@ const { z } = require('zod');
 const registerSchema = z.object({
   name: z.string().min(3, 'Nombre mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Password mínimo 6 caracteres')
+  password: z.string().min(8, 'Password mínimo 8 caracteres') // era 6
 });
 
 const loginSchema = z.object({
@@ -21,7 +21,7 @@ const forgotSchema = z.object({
 
 const resetSchema = z.object({
   token: z.string().min(10),
-  password: z.string().min(6, 'Password mínimo 6 caracteres')
+  password: z.string().min(8, 'Password mínimo 8 caracteres') // era 6
 });
 
 module.exports = {

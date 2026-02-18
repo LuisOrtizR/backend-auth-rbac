@@ -8,9 +8,6 @@ const requestRoutes = require('../requests/request.routes');
 
 const router = express.Router();
 
-/**
- * API ROUTES
- */
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/roles', roleRoutes);

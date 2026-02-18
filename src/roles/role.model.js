@@ -1,51 +1,24 @@
 const pool = require('../shared/config/db');
 
-/* =====================================================
-   CREAR ROL
-===================================================== */
-const createRole = (name, description) => {
-  return pool.query(
+const createRole = (name, description) =>
+  pool.query(
     `INSERT INTO roles (name, description)
      VALUES ($1, $2)
      RETURNING *`,
     [name, description]
   );
-};
 
-/* =====================================================
-   OBTENER TODOS
-===================================================== */
-const getRoles = () => {
-  return pool.query(
-    `SELECT * FROM roles ORDER BY id ASC`
-  );
-};
+const getRoles = () =>
+  pool.query(`SELECT * FROM roles ORDER BY id ASC`);
 
-/* =====================================================
-   OBTENER POR ID
-===================================================== */
-const getRoleById = (id) => {
-  return pool.query(
-    `SELECT * FROM roles WHERE id = $1`,
-    [id]
-  );
-};
+const getRoleById = (id) =>
+  pool.query(`SELECT * FROM roles WHERE id = $1`, [id]);
 
-/* =====================================================
-   OBTENER POR NOMBRE
-===================================================== */
-const getRoleByName = (name) => {
-  return pool.query(
-    `SELECT id FROM roles WHERE name = $1`,
-    [name]
-  );
-};
+const getRoleByName = (name) =>
+  pool.query(`SELECT id FROM roles WHERE name = $1`, [name]);
 
-/* =====================================================
-   ACTUALIZAR
-===================================================== */
-const updateRole = (id, name, description) => {
-  return pool.query(
+const updateRole = (id, name, description) =>
+  pool.query(
     `UPDATE roles
      SET name = $1,
          description = $2
@@ -53,55 +26,37 @@ const updateRole = (id, name, description) => {
      RETURNING *`,
     [name, description, id]
   );
-};
 
-/* =====================================================
-   ELIMINAR
-===================================================== */
-const deleteRole = (id) => {
-  return pool.query(
+const deleteRole = (id) =>
+  pool.query(
     `DELETE FROM roles
      WHERE id = $1
      RETURNING id`,
     [id]
   );
-};
 
-/* =====================================================
-   ASIGNAR PERMISO
-===================================================== */
-const assignPermission = (roleId, permissionId) => {
-  return pool.query(
+const assignPermission = (roleId, permissionId) =>
+  pool.query(
     `INSERT INTO role_permissions (role_id, permission_id)
      VALUES ($1, $2)`,
     [roleId, permissionId]
   );
-};
 
-/* =====================================================
-   QUITAR PERMISO
-===================================================== */
-const removePermission = (roleId, permissionId) => {
-  return pool.query(
+const removePermission = (roleId, permissionId) =>
+  pool.query(
     `DELETE FROM role_permissions
      WHERE role_id = $1 AND permission_id = $2`,
     [roleId, permissionId]
   );
-};
 
-
-/* =====================================================
-   OBTENER PERMISOS DEL ROL
-===================================================== */
-const getRolePermissions = (roleId) => {
-  return pool.query(
+const getRolePermissions = (roleId) =>
+  pool.query(
     `SELECT p.id, p.name, p.description
      FROM permissions p
      JOIN role_permissions rp ON p.id = rp.permission_id
      WHERE rp.role_id = $1`,
     [roleId]
   );
-};
 
 module.exports = {
   createRole,
@@ -111,6 +66,6 @@ module.exports = {
   updateRole,
   deleteRole,
   assignPermission,
-  getRolePermissions,
   removePermission,
+  getRolePermissions
 };

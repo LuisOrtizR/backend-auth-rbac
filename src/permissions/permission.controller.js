@@ -1,52 +1,35 @@
 const permissionService = require('./permission.service');
 
-const create = async (req, res, next) => {
-  try {
-    const result = await permissionService.createPermissionService(req.body);
-    res.status(201).json({ success: true, data: result.rows[0] });
-  } catch (error) {
-    next(error);
-  }
-};
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
 
-const getAll = async (req, res, next) => {
-  try {
-    const result = await permissionService.getPermissionsService(req.query);
-    res.json({ success: true, ...result });
-  } catch (error) {
-    next(error);
-  }
-};
+const create = asyncHandler(async (req, res) => {
+  const result = await permissionService.createPermissionService(req.body);
+  res.status(201).json({ success: true, data: result.rows[0] });
+});
 
-const getByUuid = async (req, res, next) => {
-  try {
-    const result = await permissionService.getPermissionByUuidService(req.params.uuid);
-    res.json({ success: true, data: result.rows[0] });
-  } catch (error) {
-    next(error);
-  }
-};
+const getAll = asyncHandler(async (req, res) => {
+  const result = await permissionService.getPermissionsService(req.query);
+  res.json({ success: true, ...result });
+});
 
-const update = async (req, res, next) => {
-  try {
-    const result = await permissionService.updatePermissionService(
-      req.params.uuid,
-      req.body
-    );
-    res.json({ success: true, data: result.rows[0] });
-  } catch (error) {
-    next(error);
-  }
-};
+const getByUuid = asyncHandler(async (req, res) => {
+  const result = await permissionService.getPermissionByUuidService(req.params.uuid);
+  res.json({ success: true, data: result.rows[0] });
+});
 
-const remove = async (req, res, next) => {
-  try {
-    await permissionService.deletePermissionService(req.params.uuid);
-    res.json({ success: true, message: 'Permiso eliminado' });
-  } catch (error) {
-    next(error);
-  }
-};
+const update = asyncHandler(async (req, res) => {
+  const result = await permissionService.updatePermissionService(
+    req.params.uuid,
+    req.body
+  );
+  res.json({ success: true, data: result.rows[0] });
+});
+
+const remove = asyncHandler(async (req, res) => {
+  await permissionService.deletePermissionService(req.params.uuid);
+  res.json({ success: true, message: 'Permiso eliminado' });
+});
 
 module.exports = {
   create,

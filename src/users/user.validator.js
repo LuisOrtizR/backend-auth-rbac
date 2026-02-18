@@ -10,7 +10,7 @@ const updateUserSchema = z.object({
 });
 
 const changeRoleSchema = z.object({
-  role: z.enum(['admin', 'user'])
+  role: z.string().min(3)
 });
 
 module.exports = {
