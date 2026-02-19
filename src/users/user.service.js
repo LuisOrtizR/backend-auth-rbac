@@ -3,8 +3,11 @@ const {
   getUserById,
   updateUser,
   deleteUser,
-  updateUserRole
+  updateUserRole,
+  findUserWithRolesAndPermissionsById
 } = require('./user.model');
+
+const AppError = require('../shared/utils/AppError');
 
 const getUsersService = () => getAllUsers();
 
@@ -21,6 +24,13 @@ const updateUserService = async (id, data) => {
 };
 
 const deleteUserService = async (id) => {
+  const user = await findUserWithRolesAndPermissionsById(id);
+
+  if (!user) throw new Error('USER_NOT_FOUND');
+
+  if (user.roles.includes('admin'))
+    throw new AppError('No se puede eliminar un usuario administrador', 403);
+
   const deleted = await deleteUser(id);
   if (!deleted) throw new Error('USER_NOT_FOUND');
   return true;
