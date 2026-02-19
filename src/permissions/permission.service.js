@@ -1,12 +1,6 @@
 const permissionModel = require('./permission.model');
 const AppError = require('../shared/utils/AppError');
 
-const protectedPermissions = [
-  'users_read',
-  'permissions_create',
-  'permissions_read'
-];
-
 const createPermissionService = async ({ name, description }) => {
   const existing = await permissionModel.findByName(name);
 
@@ -60,10 +54,8 @@ const updatePermissionService = async (uuid, data) => {
   if (!existing.rowCount)
     throw new AppError('Permiso no encontrado', 404);
 
-  const currentName = existing.rows[0].name;
-
-  if (protectedPermissions.includes(currentName))
-    throw new AppError('Permiso protegido', 403);
+  if (existing.rows[0].is_protected)
+    throw new AppError('Este permiso es del sistema y no puede modificarse', 403);
 
   if (data.name) {
     const nameExists = await permissionModel.findByName(data.name);
@@ -71,11 +63,7 @@ const updatePermissionService = async (uuid, data) => {
       throw new AppError('Nombre de permiso ya existe', 409);
   }
 
-  return permissionModel.updatePermission(
-    uuid,
-    data.name,
-    data.description
-  );
+  return permissionModel.updatePermission(uuid, data.name, data.description);
 };
 
 const deletePermissionService = async (uuid) => {
@@ -84,10 +72,8 @@ const deletePermissionService = async (uuid) => {
   if (!existing.rowCount)
     throw new AppError('Permiso no encontrado', 404);
 
-  const name = existing.rows[0].name;
-
-  if (protectedPermissions.includes(name))
-    throw new AppError('Permiso protegido', 403);
+  if (existing.rows[0].is_protected)
+    throw new AppError('Este permiso es del sistema y no puede eliminarse', 403);
 
   const assigned = await permissionModel.isAssignedToRole(uuid);
 
