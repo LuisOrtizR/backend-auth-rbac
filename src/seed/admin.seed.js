@@ -42,33 +42,37 @@ async function createAdmin() {
       ['admin@empresa.com']
     );
 
+    let userId;
+
     if (exists.rows.length > 0) {
-      console.log('⚠️  Usuario admin ya existe — permisos del rol actualizados.');
-      await client.query('COMMIT');
-      process.exit();
+      // ✅ Ya existe — solo tomar su id
+      userId = exists.rows[0].id;
+      console.log('⚠️  Usuario admin ya existe — verificando asignación de rol...');
+    } else {
+      // 4️⃣ Crear usuario admin
+      const hashedPassword = await bcrypt.hash('Admin123*', 10);
+
+      const userResult = await client.query(
+        `INSERT INTO users (name, email, password)
+         VALUES ($1, $2, $3)
+         RETURNING id`,
+        ['Super Admin', 'admin@empresa.com', hashedPassword]
+      );
+
+      userId = userResult.rows[0].id;
+      console.log('✅ Usuario admin creado');
     }
 
-    // 4️⃣ Crear usuario admin
-    const hashedPassword = await bcrypt.hash('Admin123*', 10);
-
-    const userResult = await client.query(
-      `INSERT INTO users (name, email, password)
-       VALUES ($1, $2, $3)
-       RETURNING id`,
-      ['Super Admin', 'admin@empresa.com', hashedPassword]
-    );
-
-    const userId = userResult.rows[0].id;
-
-    // 5️⃣ Asignar rol admin al usuario
+    // 5️⃣ Asignar rol admin al usuario (siempre, exista o no)
     await client.query(
       `INSERT INTO user_roles (user_id, role_id)
-       VALUES ($1, $2)`,
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
       [userId, roleId]
     );
 
     await client.query('COMMIT');
-    console.log('✅ Usuario admin creado correctamente');
+    console.log('✅ Rol admin asignado correctamente');
     process.exit();
 
   } catch (error) {
