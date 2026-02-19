@@ -10,7 +10,7 @@ const {
   getRolePermissions
 } = require('./role.model');
 
-const { findById } = require('../permission/permission.model');
+const { findById } = require('../permissions/permission.model');
 const AppError = require('../shared/utils/AppError');
 
 const PROTECTED_ADMIN_PERMISSIONS = [

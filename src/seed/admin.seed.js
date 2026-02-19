@@ -3,58 +3,80 @@ const bcrypt = require('bcryptjs');
 const pool = require('../shared/config/db');
 
 async function createAdmin() {
-  try {
-    const email = 'admin@empresa.com';
+  const client = await pool.connect();
 
-    // 1️⃣ Verificar si ya existe
-    const exists = await pool.query(
-      'SELECT * FROM users WHERE email=$1',
-      [email]
+  try {
+    await client.query('BEGIN');
+
+    // 1️⃣ Crear rol admin si no existe
+    await client.query(`
+      INSERT INTO roles (name, description)
+      VALUES ('admin', 'Administrador del sistema')
+      ON CONFLICT (name) DO NOTHING
+    `);
+
+    const roleResult = await client.query(
+      `SELECT id FROM roles WHERE name = 'admin'`
+    );
+    const roleId = roleResult.rows[0].id;
+
+    // 2️⃣ Asignar todos los permisos protegidos al rol admin
+    const permsResult = await client.query(
+      `SELECT id FROM permissions WHERE is_protected = TRUE`
+    );
+
+    for (const { id: permId } of permsResult.rows) {
+      await client.query(
+        `INSERT INTO role_permissions (role_id, permission_id)
+         VALUES ($1, $2)
+         ON CONFLICT DO NOTHING`,
+        [roleId, permId]
+      );
+    }
+
+    console.log(`✅ ${permsResult.rows.length} permisos asignados al rol admin`);
+
+    // 3️⃣ Verificar si el usuario admin ya existe
+    const exists = await client.query(
+      `SELECT id FROM users WHERE email = $1`,
+      ['admin@empresa.com']
     );
 
     if (exists.rows.length > 0) {
-      console.log('Admin ya existe');
+      console.log('⚠️  Usuario admin ya existe — permisos del rol actualizados.');
+      await client.query('COMMIT');
       process.exit();
     }
 
-    // 2️⃣ Hashear password
+    // 4️⃣ Crear usuario admin
     const hashedPassword = await bcrypt.hash('Admin123*', 10);
 
-    // 3️⃣ Crear usuario (SIN role)
-    const userResult = await pool.query(
+    const userResult = await client.query(
       `INSERT INTO users (name, email, password)
-       VALUES ($1,$2,$3)
+       VALUES ($1, $2, $3)
        RETURNING id`,
-      ['Super Admin', email, hashedPassword]
+      ['Super Admin', 'admin@empresa.com', hashedPassword]
     );
 
     const userId = userResult.rows[0].id;
 
-    // 4️⃣ Buscar rol admin
-    const roleResult = await pool.query(
-      `SELECT id FROM roles WHERE name='admin'`
-    );
-
-    if (roleResult.rows.length === 0) {
-      console.log('No existe el rol admin');
-      process.exit();
-    }
-
-    const roleId = roleResult.rows[0].id;
-
-    // 5️⃣ Insertar en user_roles
-    await pool.query(
+    // 5️⃣ Asignar rol admin al usuario
+    await client.query(
       `INSERT INTO user_roles (user_id, role_id)
-       VALUES ($1,$2)`,
+       VALUES ($1, $2)`,
       [userId, roleId]
     );
 
-    console.log('Admin creado correctamente');
+    await client.query('COMMIT');
+    console.log('✅ Usuario admin creado correctamente');
     process.exit();
 
   } catch (error) {
-    console.error(error);
-    process.exit();
+    await client.query('ROLLBACK');
+    console.error('Error:', error.message);
+    process.exit(1);
+  } finally {
+    client.release();
   }
 }
 
