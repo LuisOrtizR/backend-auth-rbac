@@ -139,13 +139,6 @@ const deleteRequestById = async (id, user) => {
     return { rowCount: 0 };
 
   const current = request.rows[0];
-
-  if (LOCKED_STATUSES.includes(current.status))
-    throw new AppError(
-      `No se puede eliminar una solicitud ${current.status === 'closed' ? 'cerrada' : 'rechazada'}`,
-      403
-    );
-
   if (user.roles.includes('admin') || current.user_id === user.id)
     return deleteRequest(id);
 

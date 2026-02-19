@@ -1,6 +1,6 @@
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
-const pool = require('../config/db');
+const pool = require('../shared/config/db');
 
 async function createAdmin() {
   try {
