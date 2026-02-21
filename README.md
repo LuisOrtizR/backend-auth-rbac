@@ -119,7 +119,7 @@ Esto permite un control de acceso flexible y escalable.
 Clonar el repositorio:
 
 ```bash
-git clone https://github.com/tu-usuario/backend-auth-rbac.git
+git clone https://github.com/LuisOrtizR/backend-auth-rbac.git
 cd backend-auth-rbac
 ```
 
