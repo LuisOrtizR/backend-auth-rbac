@@ -67,6 +67,7 @@ const findUserWithRolesAndPermissionsById = async (id) => {
       u.name,
       u.email,
       u.is_active,
+      u.is_protected,getAllUsers
       COALESCE(
         ARRAY_AGG(DISTINCT r.name)
         FILTER (WHERE r.name IS NOT NULL),
@@ -106,6 +107,7 @@ const getAllUsers = async () => {
       u.email,
       u.is_active,
       u.created_at,
+      u.is_protected,
       COALESCE(
         ARRAY_AGG(DISTINCT r.name)
         FILTER (WHERE r.name IS NOT NULL),
@@ -141,6 +143,7 @@ const getUserById = async (id) => {
       name,
       email,
       is_active,
+      u.is_protected,
       created_at
     FROM users
     WHERE id = $1

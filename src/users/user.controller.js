@@ -45,12 +45,22 @@ const update = asyncHandler(async (req, res) => {
   if (!isAdminOrSelf(req.user, requestedId))
     throw new AppError('No autorizado', 403);
 
-  const updated = await updateUserService(requestedId, req.body);
+  const updated = await updateUserService(
+    requestedId,
+    req.body,
+    req.user
+  );
+
   res.json(updated);
 });
 
 const updateMe = asyncHandler(async (req, res) => {
-  const updated = await updateUserService(req.user.id, req.body);
+  const updated = await updateUserService(
+    req.user.id,
+    req.body,
+    req.user
+  );
+
   res.json(updated);
 });
 
