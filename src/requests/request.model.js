@@ -13,6 +13,7 @@ const getAllRequests = () =>
     `SELECT r.*, u.email
      FROM requests r
      JOIN users u ON u.id = r.user_id
+     WHERE r.deleted_at IS NULL
      ORDER BY r.created_at DESC`
   );
 
@@ -21,7 +22,7 @@ const getRequestsByUser = (userId) =>
     `SELECT r.*, u.email
      FROM requests r
      JOIN users u ON u.id = r.user_id
-     WHERE r.user_id = $1
+     WHERE r.user_id = $1 AND r.deleted_at IS NULL
      ORDER BY r.created_at DESC`,
     [userId]
   );
@@ -66,11 +67,35 @@ const updateRequestFull = (id, data) => {
   );
 };
 
-const deleteRequest = (id) =>
+const softDeleteRequest = (id, reason) =>
   pool.query(
-    `DELETE FROM requests WHERE id = $1 RETURNING id`,
-    [id]
+    `UPDATE requests
+     SET deleted_at = NOW(), deleted_reason = $1
+     WHERE id = $2
+     RETURNING id`,
+    [reason, id]
   );
+
+const getDeletedRequests = () =>
+  pool.query(
+    `SELECT r.*, u.email
+     FROM requests r
+     JOIN users u ON u.id = r.user_id
+     WHERE r.deleted_at IS NOT NULL
+     ORDER BY r.deleted_at DESC`
+  );
+
+const getExpiredDeletedRequests = () =>
+  pool.query(
+    `SELECT r.id, r.title, r.deleted_reason, u.email
+     FROM requests r
+     JOIN users u ON u.id = r.user_id
+     WHERE r.deleted_at IS NOT NULL
+       AND r.deleted_at <= NOW() - INTERVAL '15 days'`
+  );
+
+const hardDeleteRequest = (id) =>
+  pool.query(`DELETE FROM requests WHERE id = $1`, [id]);
 
 const logRequestHistory = (requestId, changedBy, changes) => {
   if (!changes.length) return Promise.resolve({ rows: [] });
@@ -108,6 +133,15 @@ const getRequestHistory = (requestId) =>
      ORDER BY rh.created_at DESC`,
     [requestId]
   );
+  const getDeletedRequestsByUser = (userId) =>
+  pool.query(
+    `SELECT r.*, u.email
+     FROM requests r
+     JOIN users u ON u.id = r.user_id
+     WHERE r.deleted_at IS NOT NULL AND r.user_id = $1
+     ORDER BY r.deleted_at DESC`,
+    [userId]
+  );
 
 module.exports = {
   createRequest,
@@ -115,7 +149,11 @@ module.exports = {
   getRequestsByUser,
   getRequestById,
   updateRequestFull,
-  deleteRequest,
+  softDeleteRequest,
+  getDeletedRequests,
+  getExpiredDeletedRequests,
+  hardDeleteRequest,
   logRequestHistory,
-  getRequestHistory
+  getRequestHistory,
+  getDeletedRequestsByUser
 };

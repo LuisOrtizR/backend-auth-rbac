@@ -7,7 +7,8 @@ const authorize    = require('../shared/middleware/authorizePermission.middlewar
 const validate     = require('../shared/middleware/validate.middleware');
 const {
   createRequestSchema,
-  updateRequestSchema
+  updateRequestSchema,
+  deleteRequestSchema
 } = require('./request.validator');
 
 router.post(
@@ -30,6 +31,13 @@ router.get(
   authenticate,
   authorize('requests_read'),
   controller.getMine
+);
+
+router.get(
+  '/deleted',
+  authenticate,
+  authorize('requests_read'),
+  controller.getDeleted
 );
 
 router.get(
@@ -58,6 +66,7 @@ router.delete(
   '/:id',
   authenticate,
   authorize('requests_delete'),
+  validate(deleteRequestSchema),
   controller.remove
 );
 

@@ -18,7 +18,13 @@ const updateRequestSchema = z.object({
   resolution: z.string().optional() 
 });
 
+const deleteRequestSchema = z.object({
+  reason: z.string().min(5, 'El motivo debe tener al menos 5 caracteres')
+});
+
+
 module.exports = {
   createRequestSchema,
-  updateRequestSchema
+  updateRequestSchema,
+  deleteRequestSchema
 };
